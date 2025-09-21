@@ -60,7 +60,7 @@
       }
     }
 
-    function renderData(data) {
+function renderData(data) {
       const statusElement = document.getElementById('status');
       const tableBody = document.getElementById('expense-table-body');
       
@@ -69,6 +69,12 @@
       tableBody.innerHTML = '';
 
       data.forEach(item => {
+        // Use toLocaleString with options to handle both commas and decimal places
+        const formattedMonthlyBudget = item.monthlyBudget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedMonthlySpent = item.monthlySpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedYtdBudget = item.ytdBudget.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        const formattedYtdSpent = item.ytdSpent.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
         const row = document.createElement('tr');
         
         const monthlySpentClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
@@ -76,10 +82,10 @@
 
         row.innerHTML = `
           <td>${item.category}</td>
-          <td>$${item.monthlyBudget.toFixed(2)}</td>
-          <td class="spent ${monthlySpentClass}">$${item.monthlySpent.toFixed(2)}</td>
-          <td>$${item.ytdBudget.toFixed(2)}</td>
-          <td class="spent ${ytdSpentClass}">$${item.ytdSpent.toFixed(2)}</td>
+          <td>$${formattedMonthlyBudget}</td>
+          <td class="spent ${monthlySpentClass}">$${formattedMonthlySpent}</td>
+          <td>$${formattedYtdBudget}</td>
+          <td class="spent ${ytdSpentClass}">$${formattedYtdSpent}</td>
         `;
         tableBody.appendChild(row);
       });
