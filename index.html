@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Budget Summary</title>
+  <style>
+    body { font-family: sans-serif; max-width: 600px; margin: 2rem auto; }
+    h1, h2 { text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background-color: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>Budget Summary</h1>
+  <div id="summary"></div>
+  <script>
+    const SHEETS_URL = 'https://script.google.com/macros/s/AKfycbz0cP4asE5wr78JAzNWoSx2ORpHdfRIN0BXiinU6AmGiiy31DzM5IFqBwkvFccv0fU/exec';
+
+    fetch(SHEETS_URL)
+      .then(res => res.json())
+      .then(data => {
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+
+        let monthTotal = 0;
+        let yearTotal = 0;
+
+        data.forEach(entry => {
+          const date = new Date(entry.Date);
+          const amount = parseFloat(entry.Amount) || 0;
+
+          if (date.getFullYear() === currentYear) {
+            yearTotal += amount;
+
+            if (date.getMonth() === currentMonth) {
+              monthTotal += amount;
+            }
+          }
+        });
+
+        document.getElementById('summary').innerHTML = `
+          <h2>Spending</h2>
+          <p><strong>This Month:</strong> $${monthTotal.toFixed(2)}</p>
+          <p><strong>This Year:</strong> $${yearTotal.toFixed(2)}</p>
+        `;
+      })
+      .catch(err => {
+        document.getElementById('summary').innerHTML = `<p style="color:red;">Failed to load data</p>`;
+        console.error(err);
+      });
+  </script>
+</body>
+</html>
