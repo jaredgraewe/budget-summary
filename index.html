@@ -235,9 +235,9 @@
             row.innerHTML = `
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td class="${monthlyClass}">-$${formatNumber(monthlyValue)}</td>
+              <td class="${monthlyClass}">$${formatNumber(monthlyValue)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
-              <td class="${ytdClass}">-$${formatNumber(ytdValue)}</td>
+              <td class="${ytdClass}">$${formatNumber(ytdValue)}</td>
             `;
             expenseBody.appendChild(row);
           }
