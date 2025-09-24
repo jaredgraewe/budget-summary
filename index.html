@@ -218,7 +218,7 @@
           const monthlyValue = Math.abs(item.monthlySpent);
           const ytdValue = Math.abs(item.ytdSpent);
 
-          const monthlyClass = monthlyValue > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
           const ytdClass = ytdValue > item.ytdBudget ? 'over-budget' : 'under-budget';
 
 
@@ -226,7 +226,7 @@
             row.innerHTML = `
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td>$${formatNumber(monthlyValue)}</td>
+              <td>$${formatNumber(item.monthlySpent)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
               <td>$${formatNumber(ytdValue)}</td>
             `;
@@ -235,7 +235,7 @@
             row.innerHTML = `
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td class="${monthlyClass}">$${formatNumber(monthlyValue)}</td>
+              <td class="${monthlyClass}">$${formatNumber(item.monthlySpent)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
               <td class="${ytdClass}">$${formatNumber(ytdValue)}</td>
             `;
