@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Financial Overview</title>
+  <title>Budget Overview</title>
   <style>
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -126,21 +126,36 @@
     </div>
 
     <div id="expense-table-container" style="display: none;">
-        <h2>Detailed Expense Breakdown</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Category</th>
-                    <th>Monthly Budget</th>
-                    <th>Monthly Spent</th>
-                    <th>YTD Budget</th>
-                    <th>YTD Spent</th>
-                </tr>
-            </thead>
-            <tbody id="expense-table-body"></tbody>
-        </table>
+      <h2>Detailed Expense Breakdown</h2>
+
+      <h3>Income</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Monthly Budget</th>
+            <th>Monthly Income</th>
+            <th>YTD Budget</th>
+            <th>YTD Income</th>
+          </tr>
+        </thead>
+        <tbody id="income-table-body"></tbody>
+      </table>
+
+      <h3>Expenses</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Category</th>
+            <th>Monthly Budget</th>
+            <th>Monthly Spent</th>
+            <th>YTD Budget</th>
+            <th>YTD Spent</th>
+          </tr>
+        </thead>
+        <tbody id="expense-table-body"></tbody>
+      </table>
     </div>
-  </div>
 
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi0QdAyHSb4tv1ba0aIF9Il5TrKqkfEnSaoDig9ICDj8mkiwL6sw9DVWjhh6QeHqGJ/exec';
@@ -186,27 +201,42 @@
     }
 
     function renderExpenseTable(expenses) {
-      const tableBody = document.getElementById('expense-table-body');
-      tableBody.innerHTML = '';
-      
+      const expenseBody = document.getElementById('expense-table-body');
+      const incomeBody = document.getElementById('income-table-body');
+      expenseBody.innerHTML = '';
+      incomeBody.innerHTML = '';
+
       if (expenses.length > 0) {
         document.getElementById('expense-table-container').style.display = 'block';
+
+        const formatNumber = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
         expenses.forEach(item => {
+          const isIncome = item.category.toLowerCase() === 'income';
+
           const row = document.createElement('tr');
-          const monthlySpentClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
-          const ytdSpentClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
-  
-          // Use toLocaleString with options to handle both commas and decimal places
-          const formatNumber = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  
-          row.innerHTML = `
-            <td>${item.category}</td>
-            <td>$${formatNumber(item.monthlyBudget)}</td>
-            <td class="spent ${monthlySpentClass}">$${formatNumber(item.monthlySpent)}</td>
-            <td>$${formatNumber(item.ytdBudget)}</td>
-            <td class="spent ${ytdSpentClass}">$${formatNumber(item.ytdSpent)}</td>
-          `;
-          tableBody.appendChild(row);
+          const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
+
+          if (isIncome) {
+            row.innerHTML = `
+              <td>${item.category}</td>
+              <td>$${formatNumber(item.monthlyBudget)}</td>
+              <td>$${formatNumber(item.monthlySpent)}</td>
+              <td>$${formatNumber(item.ytdBudget)}</td>
+              <td>$${formatNumber(item.ytdSpent)}</td>
+            `;
+            incomeBody.appendChild(row);
+          } else {
+            row.innerHTML = `
+              <td>${item.category}</td>
+              <td>$${formatNumber(item.monthlyBudget)}</td>
+              <td class="${monthlyClass}">-$${formatNumber(item.monthlySpent)}</td>
+              <td>$${formatNumber(item.ytdBudget)}</td>
+              <td class="${ytdClass}">-$${formatNumber(item.ytdSpent)}</td>
+            `;
+            expenseBody.appendChild(row);
+          }
         });
       }
     }
