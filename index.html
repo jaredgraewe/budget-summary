@@ -149,6 +149,7 @@
             <th>Category</th>
             <th>Monthly Budget</th>
             <th>Monthly Spent</th>
+            <th>Monthly Net</th>
             <th>YTD Budget</th>
             <th>YTD Spent</th>
           </tr>
@@ -216,6 +217,7 @@
 
           const row = document.createElement('tr');
           const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const monthlyNetClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
           const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
 
           if (isIncome) {
@@ -232,6 +234,7 @@
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
               <td class="${monthlyClass}">$${formatNumber(item.monthlySpent)}</td>
+              <td class="${monthlyNetClass}">$${formatNumber(item.monthlyBudget - item.monthlySpent)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
               <td class="${ytdClass}">$${formatNumber(item.ytdSpent)}</td>
             `;
