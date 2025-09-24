@@ -214,10 +214,11 @@
 
         expenses.forEach(item => {
           const isIncome = item.category.toLowerCase() === 'income';
+          const monthlyNet = item.monthlyBudget - item.monthlySpent;
 
           const row = document.createElement('tr');
           const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
-          const monthlyNetClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const monthlyNetClass = monthlyNet > 0 ? 'under-budget' : 'over-budget';
           const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
 
           if (isIncome) {
@@ -234,7 +235,7 @@
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
               <td class="${monthlyClass}">$${formatNumber(item.monthlySpent)}</td>
-              <td class="${monthlyNetClass}">$${formatNumber(item.monthlyBudget - item.monthlySpent)}</td>
+              <td class="${monthlyNetClass}">$${formatNumber(monthlyNet)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
               <td class="${ytdClass}">$${formatNumber(item.ytdSpent)}</td>
             `;
