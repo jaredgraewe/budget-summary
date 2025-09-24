@@ -215,12 +215,8 @@
           const isIncome = item.category.toLowerCase() === 'income';
 
           const row = document.createElement('tr');
-          const monthlyValue = Math.abs(item.monthlySpent);
-          const ytdValue = Math.abs(item.ytdSpent);
-
           const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
-          const ytdClass = ytdValue > item.ytdBudget ? 'over-budget' : 'under-budget';
-
+          const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
 
           if (isIncome) {
             row.innerHTML = `
@@ -237,7 +233,7 @@
               <td>$${formatNumber(item.monthlyBudget)}</td>
               <td class="${monthlyClass}">$${formatNumber(item.monthlySpent)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
-              <td class="${ytdClass}">$${formatNumber(ytdValue)}</td>
+              <td class="${ytdClass}">$${formatNumber(item.ytdSpent)}</td>
             `;
             expenseBody.appendChild(row);
           }
