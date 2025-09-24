@@ -215,25 +215,27 @@
           const isIncome = item.category.toLowerCase() === 'income';
 
           const row = document.createElement('tr');
-          const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
-          const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
+          const adjusted_month = isIncome ? item.monthlySpent : -item.monthlySpent;
+          const adjusted_ytd = isIncome ? item.ytdSpent : -item.ytdSpent;
+          const monthlyClass = adjusted_month > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const ytdClass = adjusted_ytd > item.ytdBudget ? 'over-budget' : 'under-budget';
 
           if (isIncome) {
             row.innerHTML = `
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td>$${formatNumber(item.monthlySpent)}</td>
+              <td>$${formatNumber(adjusted_month)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
-              <td>$${formatNumber(item.ytdSpent)}</td>
+              <td>$${formatNumber(adjusted_ytd)}</td>
             `;
             incomeBody.appendChild(row);
           } else {
             row.innerHTML = `
               <td>${item.category}</td>
               <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td class="${monthlyClass}">-$${formatNumber(item.monthlySpent)}</td>
+              <td class="${monthlyClass}">-$${formatNumber(adjusted_month)}</td>
               <td>$${formatNumber(item.ytdBudget)}</td>
-              <td class="${ytdClass}">-$${formatNumber(item.ytdSpent)}</td>
+              <td class="${ytdClass}">-$${formatNumber(adjusted_ytd)}</td>
             `;
             expenseBody.appendChild(row);
           }
