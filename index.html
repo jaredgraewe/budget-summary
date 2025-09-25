@@ -97,6 +97,67 @@
       color: #5cb85c;
       font-weight: bold;
     }
+    /* Toggle button styles */
+    .view-toggle {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 1rem;
+      gap: 10px;
+    }
+
+    .toggle-button {
+      padding: 10px 20px;
+      font-size: 1rem;
+      background-color: #f1f3f5;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    .toggle-button.active {
+      background-color: #007bff;
+      color: white;
+      border-color: #007bff;
+    }
+
+    /* Responsive styles for mobile view */
+    @media (max-width: 768px) {
+      body {
+        padding: 20px;
+      }
+
+      h1 {
+        font-size: 1.75rem;
+      }
+
+      h2 {
+        font-size: 1.25rem;
+      }
+
+      .summary-card,
+      .container {
+        padding: 20px;
+      }
+
+      table {
+        font-size: 0.875rem;
+      }
+
+      th,
+      td {
+        padding: 8px;
+      }
+
+      .view-toggle {
+        flex-direction: column;
+      }
+
+      .toggle-button {
+        width: 100%;
+        font-size: 1rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -125,33 +186,29 @@
       </div>
     </div>
 
+    <div class="view-toggle">
+      <button id="monthly-toggle" class="toggle-button active">Monthly</button>
+      <button id="ytd-toggle" class="toggle-button">Year to Date</button>
+    </div>
+
     <div id="expense-table-container" style="display: none;">
       <h2>Detailed Expense Breakdown</h2>
 
-      <h3>Income</h3>
+      <h3 id="income-title">Income</h3>
       <table>
         <thead>
-          <tr>
-            <th>Category</th>
-            <th>Monthly Budget</th>
-            <th>Monthly Income</th>
-            <th>YTD Budget</th>
-            <th>YTD Income</th>
+          <tr id="income-header-row">
+            <!-- Headers will be filled by JavaScript -->
           </tr>
         </thead>
         <tbody id="income-table-body"></tbody>
       </table>
 
-      <h3>Expenses</h3>
+      <h3 id="expense-title">Expenses</h3>
       <table>
         <thead>
-          <tr>
-            <th>Category</th>
-            <th>Monthly Budget</th>
-            <th>Monthly Spent</th>
-            <th>Monthly Net</th>
-            <th>YTD Budget</th>
-            <th>YTD Spent</th>
+          <tr id="expense-header-row">
+            <!-- Headers will be filled by JavaScript -->
           </tr>
         </thead>
         <tbody id="expense-table-body"></tbody>
@@ -160,23 +217,20 @@
 
   <script>
     const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyi0QdAyHSb4tv1ba0aIF9Il5TrKqkfEnSaoDig9ICDj8mkiwL6sw9DVWjhh6QeHqGJ/exec';
+    let currentView = 'monthly';
+    let globalData = null;
 
     async function loadData() {
       const statusElement = document.getElementById('status');
       try {
         const response = await fetch(APPS_SCRIPT_URL);
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        
-        if (data.error) {
-          throw new Error(data.error);
-        }
+        if (data.error) throw new Error(data.error);
 
+        globalData = data;
         renderSummary(data);
         renderExpenseTable(data.detailedExpenses);
-
       } catch (error) {
         statusElement.textContent = `Error: ${error.message}`;
         console.error(error);
@@ -184,15 +238,15 @@
     }
 
     function renderSummary(data) {
-      const formatNumber = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      
-      document.getElementById('monthly-income').textContent = `$${formatNumber(data.monthlyIncome)}`;
-      document.getElementById('monthly-spent').textContent = `$${formatNumber(data.monthlySpent)}`;
-      document.getElementById('monthly-net').textContent = `$${formatNumber(data.monthlyNet)}`;
-      
-      document.getElementById('ytd-income').textContent = `$${formatNumber(data.ytdIncome)}`;
-      document.getElementById('ytd-spent').textContent = `$${formatNumber(data.ytdSpent)}`;
-      document.getElementById('ytd-net').textContent = `$${formatNumber(data.ytdNet)}`;
+      const format = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2 });
+
+      document.getElementById('monthly-income').textContent = `$${format(data.monthlyIncome)}`;
+      document.getElementById('monthly-spent').textContent = `$${format(data.monthlySpent)}`;
+      document.getElementById('monthly-net').textContent = `$${format(data.monthlyNet)}`;
+
+      document.getElementById('ytd-income').textContent = `$${format(data.ytdIncome)}`;
+      document.getElementById('ytd-spent').textContent = `$${format(data.ytdSpent)}`;
+      document.getElementById('ytd-net').textContent = `$${format(data.ytdNet)}`;
 
       document.getElementById('monthly-net').classList.add(data.monthlyNet >= 0 ? 'net-positive' : 'net-negative');
       document.getElementById('ytd-net').classList.add(data.ytdNet >= 0 ? 'net-positive' : 'net-negative');
@@ -204,48 +258,100 @@
     function renderExpenseTable(expenses) {
       const expenseBody = document.getElementById('expense-table-body');
       const incomeBody = document.getElementById('income-table-body');
-      expenseBody.innerHTML = '';
+      const incomeHeader = document.getElementById('income-header-row');
+      const expenseHeader = document.getElementById('expense-header-row');
+
       incomeBody.innerHTML = '';
+      expenseBody.innerHTML = '';
+      incomeHeader.innerHTML = '';
+      expenseHeader.innerHTML = '';
 
-      if (expenses.length > 0) {
-        document.getElementById('expense-table-container').style.display = 'block';
+      const format = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2 });
+      const isMonthly = currentView === 'monthly';
 
-        const formatNumber = (num) => num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      // Dynamic table headers
+      const incomeCols = isMonthly
+        ? ['Category', 'Monthly Budget', 'Monthly Income']
+        : ['Category', 'YTD Budget', 'YTD Income'];
 
-        expenses.forEach(item => {
-          const isIncome = item.category.toLowerCase() === 'income';
+      const expenseCols = isMonthly
+        ? ['Category', 'Monthly Budget', 'Monthly Spent', 'Monthly Net']
+        : ['Category', 'YTD Budget', 'YTD Spent'];
+
+      incomeCols.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        incomeHeader.appendChild(th);
+      });
+
+      expenseCols.forEach(col => {
+        const th = document.createElement('th');
+        th.textContent = col;
+        expenseHeader.appendChild(th);
+      });
+
+      expenses.forEach(item => {
+        const isIncome = item.category.toLowerCase() === 'income';
+        const row = document.createElement('tr');
+
+        if (isIncome) {
+          row.innerHTML = isMonthly
+            ? `
+              <td>${item.category}</td>
+              <td>$${format(item.monthlyBudget)}</td>
+              <td>$${format(item.monthlySpent)}</td>
+            `
+            : `
+              <td>${item.category}</td>
+              <td>$${format(item.ytdBudget)}</td>
+              <td>$${format(item.ytdSpent)}</td>
+            `;
+          incomeBody.appendChild(row);
+        } else {
           const monthlyNet = item.monthlyBudget - item.monthlySpent;
+          const monthlyNetClass = monthlyNet >= 0 ? 'under-budget' : 'over-budget';
+          const monthlySpentClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
+          const ytdSpentClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
 
-          const row = document.createElement('tr');
-          const monthlyClass = item.monthlySpent > item.monthlyBudget ? 'over-budget' : 'under-budget';
-          const monthlyNetClass = monthlyNet > 0 ? 'under-budget' : 'over-budget';
-          const ytdClass = item.ytdSpent > item.ytdBudget ? 'over-budget' : 'under-budget';
+          row.innerHTML = isMonthly
+            ? `
+              <td>${item.category}</td>
+              <td>$${format(item.monthlyBudget)}</td>
+              <td class="${monthlySpentClass}">$${format(item.monthlySpent)}</td>
+              <td class="${monthlyNetClass}">$${format(monthlyNet)}</td>
+            `
+            : `
+              <td>${item.category}</td>
+              <td>$${format(item.ytdBudget)}</td>
+              <td class="${ytdSpentClass}">$${format(item.ytdSpent)}</td>
+            `;
+          expenseBody.appendChild(row);
+        }
+      });
 
-          if (isIncome) {
-            row.innerHTML = `
-              <td>${item.category}</td>
-              <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td>$${formatNumber(item.monthlySpent)}</td>
-              <td>$${formatNumber(item.ytdBudget)}</td>
-              <td>$${formatNumber(item.ytdSpent)}</td>
-            `;
-            incomeBody.appendChild(row);
-          } else {
-            row.innerHTML = `
-              <td>${item.category}</td>
-              <td>$${formatNumber(item.monthlyBudget)}</td>
-              <td class="${monthlyClass}">$${formatNumber(item.monthlySpent)}</td>
-              <td class="${monthlyNetClass}">$${formatNumber(monthlyNet)}</td>
-              <td>$${formatNumber(item.ytdBudget)}</td>
-              <td class="${ytdClass}">$${formatNumber(item.ytdSpent)}</td>
-            `;
-            expenseBody.appendChild(row);
-          }
-        });
-      }
+      document.getElementById('expense-table-container').style.display = 'block';
     }
-    
-    document.addEventListener('DOMContentLoaded', loadData);
+
+    function updateToggleButtons() {
+      document.getElementById('monthly-toggle').classList.toggle('active', currentView === 'monthly');
+      document.getElementById('ytd-toggle').classList.toggle('active', currentView === 'ytd');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadData();
+
+      document.getElementById('monthly-toggle').addEventListener('click', () => {
+        currentView = 'monthly';
+        updateToggleButtons();
+        renderExpenseTable(globalData.detailedExpenses);
+      });
+
+      document.getElementById('ytd-toggle').addEventListener('click', () => {
+        currentView = 'ytd';
+        updateToggleButtons();
+        renderExpenseTable(globalData.detailedExpenses);
+      });
+    });
   </script>
 </body>
 </html>
